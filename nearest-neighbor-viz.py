@@ -31,7 +31,7 @@ def create_subgraphs(base_graph, positives, model, topn, subttopn, vocabres, com
     '''
     #TODO: Naive implementation, should be improved.
     #TODO: No functionality for negatives. Needs to be added.
-    if combine:
+    if not combine:
         for word in positives:
             neighbors = model.wv.most_similar(word, topn=topn, restrict_vocab=vocabres)
             for neighbor in neighbors:
