@@ -13,9 +13,11 @@ Mein Vorschlag für die Pipeline:
   - Anzahl der Schichten
 - Nachbarn mit Modell suchen -> d.h. die Hausi vom letzten mal erweitert auf die Anzahl der Schichten
 - Visualisierung
-  - Welche lib ist dafür am besten geeignet?
+  - Welche lib ist dafür am besten geeignet? Von Jannidis kam wir sollen networkx verwenden.
  
 Fragen:
 - Bei meinen Beispiel Wörtern sah man ja letztes mal, dass die Flexionen zunächst die höchsten Werte einnehmen. Wäre es sinnvoll diese auszuklammern, dass wir quasi die "wahren" Nachbarn bekommen?
 - Welche lib für die Visualisierung und wir müssen dafür die Daten aufbereitet werden?
   - Ich habe networkx gefunden, damit kann man Netzwerke aufbauen/visualisieren. Hat aber anscheinend Probleme mit größeren Netzwerken, wir müssen also bisschen schaun, wies klappt.
+ 
+Lass uns die Kommunikation auf dem Issue fortführen, da ist es strukturierter.
