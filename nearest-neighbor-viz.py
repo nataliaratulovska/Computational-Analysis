@@ -18,7 +18,7 @@ def create_base_word_graph(words, model, combine):
     graph = nx.Graph()
     if not combine:
         for word in words:
-            graph.add_node(word, node_color='pink', type='base_word')
+            graph.add_node(word, node_color='#FFAEBC', type='base_word')
         for combination in combinations(words, 2):
             similarity = model.wv.similarity(combination[0], combination[1])
             click.echo(f"Similarity between {combination[0]} and {combination[1]}: {similarity}")
@@ -40,21 +40,19 @@ def create_subgraphs(base_graph, positives, model, topn, subttopn, vocabres, neg
             for neighbor in neighbors:
                 base_graph.add_node(neighbor[0], node_color='#FBE7C6', type='sub_word_1')
                 base_graph.add_edge(word, neighbor[0], weight=neighbor[1])
-                sub_neighbors = model.wv.most_similar(neighbor[0], topn=subttopn, restrict_vocab=vocabres,
-                                                      negatives=positives)
+                sub_neighbors = model.wv.most_similar(neighbor[0], topn=subttopn, restrict_vocab=vocabres)
                 for sub_neighbor in sub_neighbors:
                     base_graph.add_node(sub_neighbor[0], node_color='#FBE7C6', type='sub_word_2')
-                    base_graph.add_edge(neighbor[0], sub_neighbor[0], weight=sub_neighbor[1], negatives=positives)
+                    base_graph.add_edge(neighbor[0], sub_neighbor[0], weight=sub_neighbor[1], negative=positives)
     else:
         neighbors = model.wv.most_similar(positives, topn=topn, restrict_vocab=vocabres)
         for neighbor in neighbors:
             base_graph.add_node(neighbor[0], node_color='#FBE7C6', type='sub_word_1')
             base_graph.add_edge(str(positives), neighbor[0], weight=neighbor[1])
-            sub_neighbors = model.wv.most_similar(neighbor[0], topn=subttopn, restrict_vocab=vocabres,
-                                                  negatives=positives)
+            sub_neighbors = model.wv.most_similar(neighbor[0], topn=subttopn, restrict_vocab=vocabres)
             for sub_neighbor in sub_neighbors:
                 base_graph.add_node(sub_neighbor[0], node_color='#FBE7C6', type='sub_word_2')
-                base_graph.add_edge(neighbor[0], sub_neighbor[0], weight=sub_neighbor[1])
+                base_graph.add_edge(neighbor[0], sub_neighbor[0], weight=sub_neighbor[1], negative=positives)
     return base_graph
 
 
