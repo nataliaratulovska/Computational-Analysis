@@ -7,6 +7,7 @@ from gensim.models import fasttext
 from itertools import combinations
 import pickle
 
+
 # Dont use matplotlib > 3.9.X
 # https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI/issues/2411
 #TODO: Add more documentation to the functions eg param descriptions etc
@@ -23,7 +24,7 @@ def create_base_word_graph(words, model, combine):
             similarity = model.wv.similarity(combination[0], combination[1])
             click.echo(f"Similarity between {combination[0]} and {combination[1]}: {similarity}")
             click.echo('\n')
-            graph.add_edge(combination[0], combination[1], weight=similarity, color='#FBE7C6', label=similarity)
+            graph.add_edge(combination[0], combination[1], weight=similarity, color='#FBE7C6', label=similarity, len=(similarity*10)**2)
     else:
         graph.add_node(str(words), node_color='#FFAEBC', type='base_word')
     return graph
@@ -40,7 +41,8 @@ def create_subgraphs(base_graph, positives, model, topn, subttopn, vocabres, neg
             for neighbor in neighbors:
                 base_graph.add_node(neighbor[0], node_color='#FBE7C6', type='sub_word_1')
                 base_graph.add_edge(word, neighbor[0], weight=neighbor[1])
-                sub_neighbors = model.wv.most_similar(neighbor[0], topn=subttopn, restrict_vocab=vocabres)
+                sub_neighbors = model.wv.most_similar(neighbor[0], topn=subttopn, restrict_vocab=vocabres,
+                                                      )
                 for sub_neighbor in sub_neighbors:
                     base_graph.add_node(sub_neighbor[0], node_color='#FBE7C6', type='sub_word_2')
                     base_graph.add_edge(neighbor[0], sub_neighbor[0], weight=sub_neighbor[1], negative=positives)
@@ -86,11 +88,7 @@ def main(positive, negative, topn, subttopn, model, combine, vocabres, roundcoun
 
     click.echo('Creating Subgraphs...\n')
     graph = create_subgraphs(base_graph, positives, model, topn, subttopn, vocabres, negatives, combine=combine)
-    # For testing without the need to run the whole script
-    #graph =
 
-    #TODO: The springlayout seems to overwrite nodecolors?
-    #pos = nx.spring_layout(graph, k=0.12, iterations=30, scale=2)
     pos = nx.nx_pydot.graphviz_layout(graph)
     fig = plt.figure()
     nx.draw(graph, pos, with_labels=True, font_size=8)
@@ -106,6 +104,7 @@ def main(positive, negative, topn, subttopn, model, combine, vocabres, roundcoun
         'sub_word_2': '#86aba7'
     }
     colors = [COLOR_SCHEME[graph.nodes[node][ATTRIBUTE_NAME]] for node in list(graph.nodes())]
+
     print([graph.nodes[node][ATTRIBUTE_NAME] for node in list(graph.nodes())])
     nx.draw_networkx_nodes(graph, pos, node_color=colors, cmap=COLOR_SCHEME.values(), node_size=500, edgecolors='#ffffff'
                            , alpha=0.9)
@@ -114,7 +113,6 @@ def main(positive, negative, topn, subttopn, model, combine, vocabres, roundcoun
                                  font_color='#ffffff', font_size=8, rotate=False, bbox=dict(alpha=0))
 
     fig.set_facecolor('#2F4F4F')
-
     fig.set_label('Nearest Neighbor Graph for: ' + str(positives))
     plt.savefig('graph.png')
 
