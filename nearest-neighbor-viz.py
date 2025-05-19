@@ -5,7 +5,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from gensim.models import fasttext
 from itertools import combinations
-import math
+import pickle
 
 # Dont use matplotlib > 3.9.X
 # https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI/issues/2411
@@ -25,7 +25,7 @@ def create_base_word_graph(words, model, combine):
             click.echo('\n')
             graph.add_edge(combination[0], combination[1], weight=similarity, color='#FBE7C6', label=similarity)
     else:
-        graph.add_node(str(words), node_color='#FFAEBC')
+        graph.add_node(str(words), node_color='#FFAEBC', type='base_word')
     return graph
 
 def create_subgraphs(base_graph, positives, model, topn, subttopn, vocabres, negatives, combine):
@@ -86,6 +86,9 @@ def main(positive, negative, topn, subttopn, model, combine, vocabres, roundcoun
 
     click.echo('Creating Subgraphs...\n')
     graph = create_subgraphs(base_graph, positives, model, topn, subttopn, vocabres, negatives, combine=combine)
+    # For testing without the need to run the whole script
+    #graph =
+
     #TODO: The springlayout seems to overwrite nodecolors?
     #pos = nx.spring_layout(graph, k=0.12, iterations=30, scale=2)
     pos = nx.nx_pydot.graphviz_layout(graph)
@@ -103,11 +106,11 @@ def main(positive, negative, topn, subttopn, model, combine, vocabres, roundcoun
         'sub_word_2': '#86aba7'
     }
     colors = [COLOR_SCHEME[graph.nodes[node][ATTRIBUTE_NAME]] for node in list(graph.nodes())]
-    print(colors)
+    print([graph.nodes[node][ATTRIBUTE_NAME] for node in list(graph.nodes())])
     nx.draw_networkx_nodes(graph, pos, node_color=colors, cmap=COLOR_SCHEME.values(), node_size=500, edgecolors='#ffffff'
                            , alpha=0.9)
-    nx.draw_networkx_edges(base_graph, pos, edge_color='#86aba7', width=4, alpha=0.8)
-    nx.draw_networkx_edge_labels(base_graph, pos, edge_labels=edge_labels,
+    nx.draw_networkx_edges(graph, pos, edge_color='#86aba7', width=4, alpha=0.8)
+    nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels,
                                  font_color='#ffffff', font_size=8, rotate=False, bbox=dict(alpha=0))
 
     fig.set_facecolor('#2F4F4F')
@@ -115,6 +118,34 @@ def main(positive, negative, topn, subttopn, model, combine, vocabres, roundcoun
     fig.set_label('Nearest Neighbor Graph for: ' + str(positives))
     plt.savefig('graph.png')
 
+
+def test_design():
+    # For testing without the need to run the whole script
+    with open('test_graph_data.pickle', 'rb') as f:
+        graph = pickle.load(f)
+    pos = nx.nx_pydot.graphviz_layout(graph)
+    fig = plt.figure()
+    nx.draw(graph, pos, with_labels=True, font_size=8)
+    edge_labels = dict([((n1, n2), round(d['weight'], 3))
+                        for n1, n2, d in graph.edges(data=True)])
+    print(edge_labels)
+    ATTRIBUTE_NAME = 'type'
+    COLOR_SCHEME = {
+        'base_word': '#a6335f',
+        'sub_word_1': '#e194bc',
+        'sub_word_2': '#86aba7'
+    }
+    colors = [COLOR_SCHEME[graph.nodes[node][ATTRIBUTE_NAME]] for node in list(graph.nodes())]
+    print([graph.nodes[node][ATTRIBUTE_NAME] for node in list(graph.nodes())])
+    nx.draw_networkx_nodes(graph, pos, node_color=colors, cmap=COLOR_SCHEME.values(), node_size=500,
+                           edgecolors='#ffffff'
+                           , alpha=0.9)
+    nx.draw_networkx_edges(graph, pos, edge_color='#86aba7', width=4, alpha=0.8)
+    nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels,
+                                 font_color='#ffffff', font_size=8, rotate=False, bbox=dict(alpha=0))
+
+    fig.set_facecolor('#2F4F4F')
+    plt.savefig('test_graph.png')
 
 
 #TODO: Add your names and rearrange them alphabetically
@@ -125,4 +156,5 @@ if __name__ == "__main__":
           "-----------------------------------\n")
 
     main()
+    #test_design()
 
