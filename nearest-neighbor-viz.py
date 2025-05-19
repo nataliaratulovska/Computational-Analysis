@@ -23,7 +23,7 @@ def create_base_word_graph(words, model, combine):
             similarity = model.wv.similarity(combination[0], combination[1])
             click.echo(f"Similarity between {combination[0]} and {combination[1]}: {similarity}")
             click.echo('\n')
-            graph.add_edge(combination[0], combination[1], weight=similarity, color='#FBE7C6', label=similarity, len=(similarity*10)**2)
+            graph.add_edge(combination[0], combination[1], weight=similarity, color='#FBE7C6', label=similarity)
     else:
         graph.add_node(str(words), node_color='#FFAEBC')
     return graph
@@ -88,7 +88,8 @@ def main(positive, negative, topn, subttopn, model, combine, vocabres, roundcoun
     click.echo('Creating Subgraphs...\n')
     graph = create_subgraphs(base_graph, positives, model, topn, subttopn, vocabres, negatives, combine=combine)
     #TODO: The springlayout seems to overwrite nodecolors?
-    pos = nx.spring_layout(graph, k=0.12, iterations=30)
+    #pos = nx.spring_layout(graph, k=0.12, iterations=30, scale=2)
+    pos = nx.nx_pydot.graphviz_layout(graph)
     fig = plt.figure()
     nx.draw(graph, pos, with_labels=True, font_size=8)
     edge_labels = dict([((n1, n2), round(d['weight'], roundcount))
@@ -104,15 +105,17 @@ def main(positive, negative, topn, subttopn, model, combine, vocabres, roundcoun
     }
     colors = [COLOR_SCHEME[graph.nodes[node][ATTRIBUTE_NAME]] for node in list(graph.nodes())]
     print(colors)
-    nx.draw_networkx_nodes(graph, pos, node_color=colors, cmap=COLOR_SCHEME.values(), node_size=1200, edgecolors='#ffffff'
+    nx.draw_networkx_nodes(graph, pos, node_color=colors, cmap=COLOR_SCHEME.values(), node_size=500, edgecolors='#ffffff'
                            , alpha=0.9)
     nx.draw_networkx_edges(base_graph, pos, edge_color='#86aba7', width=4, alpha=0.8)
     nx.draw_networkx_edge_labels(base_graph, pos, edge_labels=edge_labels,
                                  font_color='#ffffff', font_size=8, rotate=False, bbox=dict(alpha=0))
 
     fig.set_facecolor('#2F4F4F')
+
     fig.set_label('Nearest Neighbor Graph for: ' + str(positives))
     plt.savefig('graph.png')
+
 
 
 #TODO: Add your names and rearrange them alphabetically
@@ -121,5 +124,6 @@ if __name__ == "__main__":
           "Nearest Neighbor Visualization Tool\n"
           "Created by: Yannik Herbst, ..., ...\n"
           "-----------------------------------\n")
+
     main()
 
