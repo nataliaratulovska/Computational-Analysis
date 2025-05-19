@@ -41,16 +41,17 @@ def create_subgraphs(base_graph, positives, model, topn, subttopn, vocabres, neg
                 base_graph.add_node(neighbor[0], node_color='#FBE7C6', type='sub_word_1')
                 base_graph.add_edge(word, neighbor[0], weight=neighbor[1])
                 sub_neighbors = model.wv.most_similar(neighbor[0], topn=subttopn, restrict_vocab=vocabres,
-                                                      )
+                                                      negatives=positives)
                 for sub_neighbor in sub_neighbors:
                     base_graph.add_node(sub_neighbor[0], node_color='#FBE7C6', type='sub_word_2')
-                    base_graph.add_edge(neighbor[0], sub_neighbor[0], weight=sub_neighbor[1])
+                    base_graph.add_edge(neighbor[0], sub_neighbor[0], weight=sub_neighbor[1], negatives=positives)
     else:
         neighbors = model.wv.most_similar(positives, topn=topn, restrict_vocab=vocabres)
         for neighbor in neighbors:
             base_graph.add_node(neighbor[0], node_color='#FBE7C6', type='sub_word_1')
             base_graph.add_edge(str(positives), neighbor[0], weight=neighbor[1])
-            sub_neighbors = model.wv.most_similar(neighbor[0], topn=subttopn, restrict_vocab=vocabres)
+            sub_neighbors = model.wv.most_similar(neighbor[0], topn=subttopn, restrict_vocab=vocabres,
+                                                  negatives=positives)
             for sub_neighbor in sub_neighbors:
                 base_graph.add_node(sub_neighbor[0], node_color='#FBE7C6', type='sub_word_2')
                 base_graph.add_edge(neighbor[0], sub_neighbor[0], weight=sub_neighbor[1])
