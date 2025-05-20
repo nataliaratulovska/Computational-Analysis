@@ -37,7 +37,8 @@ def create_subgraphs(base_graph, positives, model, topn, subttopn, vocabres, neg
     #TODO: No functionality for negatives. Needs to be added.
     if not combine:
         for word in positives:
-            neighbors = model.wv.most_similar(word, topn=topn, restrict_vocab=vocabres)
+            #neighbors = model.wv.most_similar(word, topn=topn, restrict_vocab=vocabres) -> ohne negatives
+            neighbors = model.wv.most_similar(positive = [word], negative = negatives if negatives else [], topn=topn, restrict_vocab=vocabres)
             for neighbor in neighbors:
                 base_graph.add_node(neighbor[0], node_color='#FBE7C6', type='sub_word_1')
                 base_graph.add_edge(word, neighbor[0], weight=neighbor[1])
@@ -47,7 +48,8 @@ def create_subgraphs(base_graph, positives, model, topn, subttopn, vocabres, neg
                     base_graph.add_node(sub_neighbor[0], node_color='#FBE7C6', type='sub_word_2')
                     base_graph.add_edge(neighbor[0], sub_neighbor[0], weight=sub_neighbor[1], negative=positives)
     else:
-        neighbors = model.wv.most_similar(positives, topn=topn, restrict_vocab=vocabres)
+        #neighbors = model.wv.most_similar(positives, topn=topn, restrict_vocab=vocabres) -> ohne negatives
+        neighbors = model.wv.most_similar(positive = positives, negative = negatives if negatives else [], topn=topn, restrict_vocab=vocabres)
         for neighbor in neighbors:
             base_graph.add_node(neighbor[0], node_color='#FBE7C6', type='sub_word_1')
             base_graph.add_edge(str(positives), neighbor[0], weight=neighbor[1])
@@ -62,14 +64,15 @@ def create_subgraphs(base_graph, positives, model, topn, subttopn, vocabres, neg
 @click.option('--positive', prompt='Single or multiple words seperated by a whitespace.'
                                                  'These words are used to find the nearest neighbors. If used with '
                                                  'combine the words act as a conglomerate.', required=True)
-@click.option('--negative', default=None, help='Single or multiple words seperated by a whitespace.'
-                                                 'These words will be excluded from the nearest neighbors.')
+#@click.option('--negative', default=None, help='Single or multiple words seperated by a whitespace.These words will be excluded from the nearest neighbors.')
+@click.option('--negative', prompt='Single or multiple words seperated by a whitespace.'
+                                                 'These words will be excluded from the nearest neighbors. (Optional)', default='', required=False)
 @click.option('--topn', default=10, help='Number of nearest neighbors to find.')
 @click.option('--subttopn', default=3, help='Graph type to use.')
 @click.option('--model', default='cc.en.300.bin', help='Model to use. Filename in models/ directory.')
 @click.option('--combine', is_flag=False, help='Combine the positives to a conglomerate.')
-#TODO: Maybe find a better default for this?
-@click.option('--vocabres', default=100000, help='Graph type to use.')
+#TODO: Maybe find a better default for this? 10.000 ok for only positives, 30.000 needed for negatives
+@click.option('--vocabres', default=30000, help='Graph type to use.')
 @click.option('--roundcount', default=3, help='How much the similiarity measure for the labels gets rounded.')
 def main(positive, negative, topn, subttopn, model, combine, vocabres, roundcount):
     '''
@@ -150,7 +153,7 @@ def test_design():
 if __name__ == "__main__":
     print("-----------------------------------\n"
           "Nearest Neighbor Visualization Tool\n"
-          "Created by: Yannik Herbst, ..., ...\n"
+          "Created by: Yannik Herbst, Natalia Ratulovska, ...\n"
           "-----------------------------------\n")
 
     main()
