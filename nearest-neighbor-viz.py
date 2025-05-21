@@ -8,13 +8,32 @@ from pydantic import BaseModel, Field, ConfigDict
 from matplotlib import cm
 from matplotlib.colors import rgb2hex
 
+# Global configuration object, initialized later in the main function
 config: 'Config'
+
+# Generate a colormap using the plasma color scheme
 cmap = [rgb2hex(color) for color in cm.plasma((range(256)))]
+
+# List to store negative words
 negatives = []
+
 
 class Config(BaseModel):
     """
     Configuration class for the FastText model.
+
+    Attributes:
+        model_file (str): Path to the FastText model file.
+        positives (list): List of positive words to use for similarity search.
+        negatives (list): List of negative words to exclude from similarity search.
+        topn (int): Number of nearest neighbors to find.
+        subt_topn (int): Number of neighbors for sub-nodes.
+        combine (bool): Whether to combine positive words into a conglomerate.
+        vocab_restriction (int): Restrict vocabulary size for similarity search.
+        round_count (int): Number of decimal places to round similarity scores.
+        depth (int): Depth of the graph hierarchy.
+        model (fasttext.FastText): Loaded FastText model instance.
+        single_occurrence (bool): Whether to allow multiple occurrences of the same word.
     """
     model_config = ConfigDict(arbitrary_types_allowed=True)
     model_file: str = Field(default='cc.en.300.bin', description='Model to use. Filename in models/ directory.')
@@ -30,17 +49,19 @@ class Config(BaseModel):
     single_occurrence: bool = Field(default=True, description='Dont allow multiple occurrences of the same word.')
 
 
-# Dont use matplotlib > 3.9.X
-# https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI/issues/2411
-
 def add_sub_nodes(graph, word, parent_node_id, hierarchy=1):
-    '''
-    Add sub nodes to the graph.
-    word: Word to use.
-    parent_node_id: Node id to use.
-    hierarchy: Current depth in the graph.
-    visited: Set of already visited words.
-    '''
+    """
+    Recursively add sub-nodes to the graph.
+
+    Args:
+        graph (graphviz.Graph): The graph object to which nodes and edges are added.
+        word (str): The word for which neighbors are added as sub-nodes.
+        parent_node_id (str): The ID of the parent node.
+        hierarchy (int): Current depth in the graph hierarchy.
+
+    Raises:
+        ValueError: If the global `config` object is not initialized.
+    """
     if config is None:
         raise ValueError("Config is not initialized.")
     if hierarchy > config.depth:
@@ -71,10 +92,14 @@ def add_sub_nodes(graph, word, parent_node_id, hierarchy=1):
             hierarchy=hierarchy + 1
         )
 
+
 def create_graph():
-    '''
-    Create a base nodes from userinput.
-    '''
+    """
+    Create a graph based on user input and configuration.
+
+    Returns:
+        graphviz.Graph: The generated graph object.
+    """
     # Create a graph, default styles are set here
     graph = gv.Graph(comment='Graph for: ' + "-".join(config.positives),
                      graph_attr={
@@ -113,7 +138,6 @@ def create_graph():
     return graph
 
 
-
 @click.command()
 @click.option('--positive', prompt='Single or multiple words seperated by a whitespace.'
                                                  'These words are used to find the nearest neighbors. If used with '
@@ -130,10 +154,22 @@ def create_graph():
 @click.option('--verbose', '-v', is_flag=True, default=False, help='Verbose output.')
 @click.option('--singleoccurrence', '-so', is_flag=True, default=True, help='Dont allow multiple occurrences of the same word.')
 def main(positive, negative, topn, subttopn, modelfile, combine, vocabres, roundcount, depth, verbose, singleoccurrence):
-    '''
+    """
     Main function to load the pre-trained word vectors and find the most similar words.
-    Binary fasttext model has some drawbacks. Checkout https://radimrehurek.com/gensim/models/_fasttext_bin.html
-    '''
+
+    Args:
+        positive (str): Positive words separated by whitespace.
+        negative (str): Negative words separated by whitespace.
+        topn (int): Number of nearest neighbors to find.
+        subttopn (int): Number of neighbors for sub-nodes.
+        modelfile (str): Path to the FastText model file.
+        combine (bool): Whether to combine positive words into a conglomerate.
+        vocabres (int): Restrict vocabulary size for similarity search.
+        roundcount (int): Number of decimal places to round similarity scores.
+        depth (int): Depth of the graph hierarchy.
+        verbose (bool): Whether to enable verbose output.
+        singleoccurrence (bool): Whether to allow multiple occurrences of the same word.
+    """
     global config
     # Set the config
     config = Config(
@@ -182,16 +218,6 @@ def main(positive, negative, topn, subttopn, modelfile, combine, vocabres, round
                                                  'combine the words act as a conglomerate.', default=None).split(" ")
 
 
-
-
-def test_design():
-    # For testing without the need to run the whole script
-    with open('test_graph_data.pickle', 'rb') as f:
-        graph = pickle.load(f)
-    graph.render(view=True)
-
-
-
 #TODO: Add your names and rearrange them alphabetically
 if __name__ == "__main__":
     print("-----------------------------------\n"
@@ -199,5 +225,3 @@ if __name__ == "__main__":
           "Created by: Yannik Herbst, Natalia Ratulovska, ...\n"
           "-----------------------------------\n")
     main()
-    #test_design()
-
