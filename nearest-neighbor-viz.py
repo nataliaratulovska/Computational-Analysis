@@ -121,20 +121,17 @@ def create_graph():
                      },
                      engine='neato'
                      )
-    if not config.combine:
-        node_mapping = []
-        for word in config.positives:
-            node_id = str(uuid4())
-            graph.node(node_id, word, color='#a6335f')
-            add_sub_nodes(graph, word, node_id)
-            node_mapping.append((node_id, word))
-        for combination in combinations(node_mapping, 2):
-            similarity = config.model.wv.similarity(combination[0][1], combination[1][1])
-            click.echo(f"Similarity between {combination[0][1]} and {combination[1][1]}: {similarity}")
-            graph.edge(combination[0][0], combination[1][0], label=str(round(similarity, config.round_count)))
-    else:
+
+    node_mapping = []
+    for word in config.positives:
         node_id = str(uuid4())
-        graph.node(node_id, str(config.positives), color=cmap[0])
+        graph.node(node_id, word, color='#a6335f')
+        add_sub_nodes(graph, word, node_id)
+        node_mapping.append((node_id, word))
+    for combination in combinations(node_mapping, 2):
+        similarity = config.model.wv.similarity(combination[0][1], combination[1][1])
+        click.echo(f"Similarity between {combination[0][1]} and {combination[1][1]}: {similarity}")
+        graph.edge(combination[0][0], combination[1][0], label=str(round(similarity, config.round_count)))
     return graph
 
 
@@ -174,7 +171,7 @@ def main(positive, negative, topn, subttopn, modelfile, combine, vocabres, round
     # Set the config
     config = Config(
         model_file=modelfile,
-        positives=positive.split(" "),
+        positives=positive.split(" ") if not combine else [positive],
         negatives=negative.split(" ") if negative else [],
         topn=topn,
         subt_topn=subttopn,
