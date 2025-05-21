@@ -165,15 +165,23 @@ def main(positive, negative, topn, subttopn, modelfile, combine, vocabres, round
     # Load the model
     click.echo('Loading model...\n')
     config.model = fasttext.load_facebook_model('models/' + modelfile)
+    run = True
+    # Main loop: To not reload the model every time, we keep it in memory, so we can create multiple graphs.
+    while run:
+        # Create the graph
+        click.echo('Creating Graph...\n')
+        graph = create_graph()
+        # Save the graph
+        graph.render(view=True, filename=f'graph-{"-".join(config.positives)}', format='png')
+        click.echo(f'Graph created. Saved as: graph-{"-".join(config.positives)}.png\n')
+        # Ask if the user wants to create a new graph
+        run = click.confirm('Do you want to create a new graph?', default=False)
+        if run:
+            config.positives = click.prompt('Single or multiple words seperated by a whitespace.'
+                                                 'These words are used to find the nearest neighbors. If used with '
+                                                 'combine the words act as a conglomerate.', default=None).split(" ")
 
-    # Create the graph
-    click.echo('Creating Graph...\n')
-    graph = create_graph()
-    graph.render(view=True, filename=f'graph-{"-".join(config.positives)}', format='png')
 
-    # Uncomment below to create new test graph data
-    # with open('test_graph_data.pickle', 'wb') as f:
-    #     pickle.dump(graph, f)
 
 
 def test_design():
@@ -190,7 +198,6 @@ if __name__ == "__main__":
           "Nearest Neighbor Visualization Tool\n"
           "Created by: Yannik Herbst, Natalia Ratulovska, ...\n"
           "-----------------------------------\n")
-
     main()
     #test_design()
 
