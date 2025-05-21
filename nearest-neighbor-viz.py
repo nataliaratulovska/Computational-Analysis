@@ -184,35 +184,6 @@ def test_design():
 
 
 
-def test_design():
-    # For testing without the need to run the whole script
-    with open('test_graph_data.pickle', 'rb') as f:
-        graph = pickle.load(f)
-    pos = nx.nx_pydot.graphviz_layout(graph)
-    fig = plt.figure()
-    nx.draw(graph, pos, with_labels=True, font_size=8)
-    edge_labels = dict([((n1, n2), round(d['weight'], 3))
-                        for n1, n2, d in graph.edges(data=True)])
-    print(edge_labels)
-    ATTRIBUTE_NAME = 'type'
-    COLOR_SCHEME = {
-        'base_word': '#a6335f',
-        'sub_word_1': '#e194bc',
-        'sub_word_2': '#86aba7'
-    }
-    colors = [COLOR_SCHEME[graph.nodes[node][ATTRIBUTE_NAME]] for node in list(graph.nodes())]
-    print([graph.nodes[node][ATTRIBUTE_NAME] for node in list(graph.nodes())])
-    nx.draw_networkx_nodes(graph, pos, node_color=colors, cmap=COLOR_SCHEME.values(), node_size=500,
-                           edgecolors='#ffffff'
-                           , alpha=0.9)
-    nx.draw_networkx_edges(graph, pos, edge_color='#86aba7', width=4, alpha=0.8)
-    nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels,
-                                 font_color='#ffffff', font_size=8, rotate=False, bbox=dict(alpha=0))
-
-    fig.set_facecolor('#2F4F4F')
-    plt.savefig('test_graph.png')
-
-
 #TODO: Add your names and rearrange them alphabetically
 if __name__ == "__main__":
     print("-----------------------------------\n"
